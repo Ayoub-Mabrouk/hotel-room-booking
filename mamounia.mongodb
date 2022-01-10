@@ -1,0 +1,228 @@
+//create mamounia if not exists and use it at the same time
+use mamounia;
+
+//list all databases
+show dbs
+
+
+use('mamounia');
+
+//creating users collection with schema
+db.createCollection("users",{
+    validator:{
+        $jsonSchema:{
+            bsonType:"object",
+            required:["first_name","last_name","email","phone","password"],
+            properties:{
+                first_name:{
+                    bsonType:"string",
+                    description:"must be a string and is required"
+                },
+                last_name:{
+                    bsonType:"string",
+                    description:"must be a string and is required"
+                },
+                email:{
+                    bsonType:"string",
+                    description:"must be a string and is required"
+                },
+                phone:{
+                    bsonType:"int",
+                    description:"must be an int32 and is required"
+                },
+                password:{
+                    bsonType:"string",
+                    description:"must be a string and is required"
+                }
+            }
+        }
+    }
+});
+
+use('mamounia');
+//adding documents to users collection
+db.users.insertOne({
+    first_name:"Ayoub",
+    last_name:"Mabrouk",
+    email:"ayoub@gmail.com",
+    phone:0123456789,
+    password:"1234"
+    }
+    );
+
+use('mamounia');
+db.users.insertOne({
+    first_name:"Aya",
+    last_name:"Naitz",
+    email:"aya@gmail.com",
+    phone:0123456789,
+    password:"1234"
+    }
+);
+
+use('mamounia');
+db.users.insertOne({
+    first_name:"Chaimae",
+    last_name:"nmiyess",
+    email:"chaimae@gmail.com",
+    phone:0123456789,
+    password:"1234"
+    }
+);
+
+use('mamounia');
+db.users.find();
+
+
+
+use('mamounia');
+//creating roomType collection with schema
+// db.room_type.drop()
+db.createCollection("room_types",{
+    validator:{
+        $jsonSchema:{
+            bsonType:"object",
+            required:["description","max_capacity","price"],
+            properties:{
+                description:{
+                    bsonType:"string",
+                    description:"must be a string and is required"
+                },
+                max_capacity:{
+                    bsonType:"int",
+                    minimum: 1,
+                    maximum: 4,
+                    description:"must be an int32 between [1-4] and is required"
+                },
+                price:{
+                    bsonType:"decimal",
+                    description:"must be a decimal and is required"
+                }
+            }
+        }
+    }
+});
+
+use('mamounia');
+//insert room_type documents to collection
+db.room_types.insertMany(
+    [
+        {
+            description:"big room with 4 beds",
+            max_capacity:NumberInt(4),
+            price:NumberDecimal("120")
+        },
+        {
+            description:"a room with 2 beds",
+            max_capacity:NumberInt(2),
+            price:NumberDecimal("99.9")
+        },
+        {
+            description:"1 bed room",
+            max_capacity:NumberInt(3),
+            price:NumberDecimal("80")
+        }
+    ]
+);
+
+
+use('mamounia');
+//creating rooms collection with schema
+db.createCollection("rooms",{
+    validator:{
+        $jsonSchema:{
+            bsonType:"object",
+            required:["number","room_type"],
+            properties:{
+                number:{
+                    bsonType:"int",
+                    description:"must be an int32 and is required"
+                },
+                room_type:{
+                    bsonType:"objectId",
+                    description:"must be a reference to a room_type"
+                }
+            }
+        }
+    }
+});
+
+use('mamounia');
+//rooms insertion
+db.rooms.insertMany(
+    [
+        {
+            number:NumberInt(1),
+            room_type:ObjectId("61d8bb34075837b726e614f6")
+        },
+        {
+            number:NumberInt(2),
+            room_type:ObjectId("61d8bb34075837b726e614f7")
+        },
+        {
+            number:NumberInt(3),
+            room_type:ObjectId("61d8bb34075837b726e614f8")
+        },
+        {
+            number:NumberInt(4),
+            room_type:ObjectId("61d8bb34075837b726e614f6")
+        },
+        {
+            number:NumberInt(5),
+            room_type:ObjectId("61d8bb34075837b726e614f8")
+        },
+    ]
+);
+
+use('mamounia');
+//creating roomType collection with schema
+//reconfigure the schema without deleting the collection
+db.runCommand({collMod:"room_types",
+    validator:{
+        $jsonSchema:{
+            bsonType:"object",
+            required:["description","max_capacity","price"],
+            properties:{
+                description:{
+                    bsonType:"string",
+                    description:"must be a string and is required"
+                },
+                max_capacity:{
+                    bsonType:"int",
+                    minimum: 1,
+                    maximum: 4,
+                    description:"must be an int32 between [1-4] and is required"
+                },
+                price:{
+                    bsonType:"double",
+                    description:"must be a double and is required"
+                }
+            }
+        }
+    }
+});
+
+
+use('mamounia');
+db.rooms.aggregate(
+    [
+        {
+            $lookup: {
+              from: 'room_types',
+              localField: 'room_type',
+              foreignField: '_id',
+              as: 'rooms'
+            }
+        },
+        {   $unwind:"$rooms" },
+        {   
+            $project:{
+                _id : 1,
+                number : 1,
+                description : "$rooms.description",
+                max_capacity:"$rooms.max_capacity",
+                price:"$rooms.price",
+            } 
+        }
+    ]
+)
