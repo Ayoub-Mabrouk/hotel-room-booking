@@ -201,8 +201,60 @@ db.runCommand({collMod:"room_types",
         }
     }
 });
+//creating users collection with schema
 
+use('mamounia');
+db.createCollection("bookings",{
+    validator:{
+        $jsonSchema:{
+            bsonType:"object",
+            required:["user_id","room_id","date_in","date_out"],
+            properties:{
+                user_id:{
+                    bsonType:"objectId",
+                    description:"must be an objectId and is required"
+                },
+                room_id:{
+                    bsonType:"objectId",
+                    description:"must be an objectId and is required"
+                },
+                date_in:{
+                    bsonType:"date",
+                    description:"must be a date and is required"
+                },
+                date_out:{
+                    bsonType:"date",
+                    description:"must be an date and is required"
+                }
+            }
+        }
+    }
+});
 
+use('mamounia');
+db.bookings.insertMany(
+    [
+        {
+            user_id:ObjectId("61d89bce913fd41c9706a2c7"),
+            room_id:ObjectId("61d8bf4cf224514695de1a89"),
+            date_in:new Date(),
+            date_out:new Date()
+        },
+        {
+            user_id:ObjectId("61d89bce913fd41c9706a2c6"),
+            room_id:ObjectId("61d8bb34075837b726e614f8"),
+            date_in:new Date(),
+            date_out:new Date()
+        },
+       {
+            user_id:ObjectId("61d899920adc3143790ec34c"),
+            room_id:ObjectId("61d8bf4cf224514695de1a8c"),
+            date_in:new Date(),
+            date_out:new Date()
+        }
+    ]
+);
+//get all rooms
 use('mamounia');
 db.rooms.aggregate(
     [
@@ -222,6 +274,49 @@ db.rooms.aggregate(
                 description : "$rooms.description",
                 max_capacity:"$rooms.max_capacity",
                 price:"$rooms.price",
+            } 
+        }
+    ]
+)
+//get each users and reservations
+use('mamounia');
+db.bookings.aggregate(
+    [
+        {
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'users'
+            }
+        },
+        {   $unwind:"$users" },
+        {
+            $lookup: {
+              from: 'rooms',
+              localField: 'room_id',
+              foreignField: '_id',
+              as: 'rooms'
+            }
+        },
+        {   $unwind:"$rooms" },
+        // {
+        //     $lookup: {
+        //       from: 'room_types',
+        //       localField: '$rooms.room_type',
+        //       foreignField: '_id',
+        //       as: 'room_type'
+        //     }
+        // },
+        // {   $unwind:"$room_type" },
+        
+        {   
+            $project:{
+                _id : 1,
+                user_id:1,
+                room_id:1,
+                userFullName : { $concat: [ "$users.first_name", " ", "$users.last_name" ] },
+                roomNumber:"$rooms.number"
             } 
         }
     ]
