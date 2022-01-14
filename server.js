@@ -12,11 +12,11 @@ process.on("uncaughtException", (err) => {
 
 const app = require("./app");
 
-const database = process.env.DATABASE.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
-
+// const database = process.env.DATABASE.replace(
+//   "<PASSWORD>",
+//   process.env.DATABASE_PASSWORD
+// );
+const database="mongodb://localhost/mamounia"
 // Connect the database
 mongoose
   .connect(database, {
