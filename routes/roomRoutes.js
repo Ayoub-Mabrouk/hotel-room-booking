@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bookingController = require('../controllers/bookingController');
+const roomController = require('../controllers/roomController');
 const authController = require('./../controllers/authController');
 
 // router.route('/createBooking').post(bookingController);
@@ -8,7 +8,7 @@ const authController = require('./../controllers/authController');
 
 // Protect all routes after this middleware
 router.use(authController.protect);
-router.route('/booking').post(bookingController.reserve);
+router.route('/getAllRooms').get(roomController.getAllRooms);
 
 // Only admin have permission to access for the below APIs 
 router.use(authController.restrictTo('admin'));
