@@ -2,8 +2,17 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+
+//sanitize user input post or get
 const xss = require('xss-clean');
+
+/* http params pollution 
+By default all top-level parameters in req.query 
+are checked for being an array. 
+If a parameter is an array the array is moved to req.queryPolluted and req.query
+ is assigned the last value of the array */
 const hpp = require('hpp');
+
 const cors = require('cors');
 
 
